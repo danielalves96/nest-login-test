@@ -1,0 +1,211 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                            String                @id @default(uuid())
+  username                      String                @unique
+  name                          String
+  password                      String
+  enabled                       Boolean?              @default(true)
+  identificationDocument        String                @unique
+  email                         String                @unique
+  phone                         String?
+  mobilePhone                   String?               @unique
+  picture                       String?
+  lastActiveAt                  Int
+  banned                        Boolean?
+  locked                        Boolean?
+  lockoutExpiresInSeconds       Int?
+  verificationAttemptsRemaining Int?
+  createdAt                     Int
+  updatedAt                     Int
+  userOrganization              UserOrganization[]
+  groupMembers                  GroupMember[]
+  permissions                   Permission[]
+  registrationNumbers           RegistrationNumbers[]
+  userApp                       UserApp[]
+  emailAddresses                EmailAddress[]
+  phoneNumbers                  PhoneNumber[]
+}
+
+model EmailAddress {
+  id            String  @id @default(uuid())
+  email_address String
+  reserved      Boolean
+  createdAt     Int
+  updatedAt     Int
+  userId        String
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PhoneNumber {
+  id                         String  @id @default(uuid())
+  phone_number               String
+  reserved_for_second_factor Boolean
+  default_second_factor      Boolean
+  reserved                   Boolean
+  createdAt                  Int
+  updatedAt                  Int
+  userId                     String
+  user                       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserOrganization {
+  userId         String
+  organizationId String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, organizationId])
+}
+
+model RegistrationNumbers {
+  id                 String @id @default(uuid())
+  registrationNumber String
+  personId           String
+  user               User   @relation(fields: [personId], references: [id], onDelete: Cascade)
+}
+
+model Organization {
+  id                     String             @id @default(uuid())
+  name                   String
+  identificationDocument String             @unique
+  subdomain              String             @unique
+  enabled                Boolean?           @default(true)
+  email                  String             @unique
+  imageUrl               String?
+  phone                  String
+  siteUrl                String?
+  contactName            String
+  contactPhone           String
+  storageLimit           Decimal?
+  contractId             String?
+  userOrganization       UserOrganization[]
+  groups                 Group[]
+  modules                Module[]
+  contract               Contract?          @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  organizationApp        OrganizationApp[]
+  userApp                UserApp[]
+}
+
+model Contract {
+  id            String         @id @default(uuid())
+  name          String
+  organizations Organization[]
+}
+
+model Group {
+  id             String        @id @default(uuid())
+  name           String
+  description    String?
+  organizationId String
+  enabled        Boolean       @default(true)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  groupMember    GroupMember[]
+  permissions    Permission[]
+}
+
+model GroupMember {
+  id      String @id @default(uuid())
+  groupId String
+  userId  String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model App {
+  id              String            @id @default(uuid())
+  name            String
+  description     String
+  enabled         Boolean?          @default(true)
+  internalKey     String
+  url             String            @unique
+  modules         Module[]
+  organizationApp OrganizationApp[]
+  resources       Resource[]
+  userApp         UserApp[]
+}
+
+model OrganizationApp {
+  id             String       @id @default(uuid())
+  organizationId String
+  appId          String
+  app            App          @relation(fields: [appId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model UserApp {
+  id             String       @id @default(uuid())
+  userId         String
+  appId          String
+  organizationId String
+  app            App          @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Module {
+  id             String        @id @default(uuid())
+  name           String
+  description    String
+  enabled        Boolean       @default(true)
+  iconName       String?
+  url            String?
+  order          Int?
+  appId          String
+  parentModuleId String?
+  organizationId String?
+  app            App           @relation(fields: [appId], references: [id], onDelete: Cascade)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  resources      Resource[]
+
+  parentModule Module?  @relation("ModuleHierarchy", fields: [parentModuleId], references: [id])
+  modules      Module[] @relation("ModuleHierarchy")
+}
+
+model Action {
+  id           String        @id @default(uuid())
+  name         String
+  resourceType ResourceType? @default(FUNCTIONALITY)
+  enabled      Boolean       @default(true)
+  internalKey  String
+  resourceId   String
+  resource     Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  permissions  Permission[]
+}
+
+model Resource {
+  id           String       @id @default(uuid())
+  name         String
+  description  String?
+  resourceType ResourceType @default(FUNCTIONALITY)
+  internalKey  String
+  enabled      Boolean      @default(true)
+  appId        String
+  moduleId     String
+  actions      Action[]
+  app          App          @relation(fields: [appId], references: [id], onDelete: Cascade)
+  module       Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+}
+
+model Permission {
+  id       String  @id @default(uuid())
+  actionId String
+  groupId  String?
+  userId   String?
+  action   Action  @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  group    Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ResourceType {
+  DIRECTORY
+  FILE
+  FUNCTIONALITY
+}
