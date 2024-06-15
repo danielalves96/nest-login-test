@@ -7,7 +7,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('My Project API')
-    .setDescription('API description')
+    .setDescription('API de autenticação e gerenciamento de usuários')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
