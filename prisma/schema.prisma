@@ -8,18 +8,17 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(uuid())
+  id              String     @id @default(uuid())
+  password        String
   enabled         Boolean
   profileImageUrl String
   lastSignInAt    DateTime?
   banned          Boolean
   blocked         Boolean
-  organizationId  String
   personId        String
-  updatedAt       DateTime  @updatedAt
-  createdAt       DateTime  @default(now())
-
-  usernames Username[]
+  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime   @default(now())
+  usernames       Username[]
 }
 
 model Username {
@@ -28,8 +27,7 @@ model Username {
   username       String
   password       String
   organizationId String
-
-  user User @relation(fields: [userId], references: [id])
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([username, organizationId])
 }

@@ -1,12 +1,12 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
     "enabled" BOOLEAN NOT NULL,
     "profileImageUrl" TEXT NOT NULL,
     "lastSignInAt" TIMESTAMP(3),
     "banned" BOOLEAN NOT NULL,
     "blocked" BOOLEAN NOT NULL,
-    "organizationId" TEXT NOT NULL,
     "personId" TEXT NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -29,4 +29,4 @@ CREATE TABLE "Username" (
 CREATE UNIQUE INDEX "Username_username_organizationId_key" ON "Username"("username", "organizationId");
 
 -- AddForeignKey
-ALTER TABLE "Username" ADD CONSTRAINT "Username_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Username" ADD CONSTRAINT "Username_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

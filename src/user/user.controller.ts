@@ -186,4 +186,12 @@ export class UserController {
   deleteUsername(@Param('id') id: string) {
     return this.userService.deleteUsername(id);
   }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Deleta um usuário pelo ID' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Usuário deletado com sucesso.' })
+  deleteUser(@Param('id') id: string) {
+    return this.userService.deleteUser(id);
+  }
 }

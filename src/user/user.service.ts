@@ -15,20 +15,23 @@ export class UserService {
 
   async createUser(createUserDto: CreateUserDto): Promise<any> {
     try {
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.prisma.user.create({
         data: {
+          password: hashedPassword,
           enabled: createUserDto.enabled,
           profileImageUrl: createUserDto.profileImageUrl,
-          organizationId: createUserDto.organizationId,
           personId: createUserDto.personId,
           banned: false,
           blocked: false,
           lastSignInAt: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
           usernames: {
             create: createUserDto.usernames.map((username) => ({
               username: username.username,
               password: bcrypt.hashSync(username.password, 10),
-              organizationId: createUserDto.organizationId,
+              organizationId: username.organizationId,
             })),
           },
         },
@@ -46,7 +49,7 @@ export class UserService {
   async findAllByOrganization(organizationId: string): Promise<any[]> {
     try {
       const users = await this.prisma.user.findMany({
-        where: { organizationId },
+        where: { usernames: { some: { organizationId } } },
         include: { usernames: true },
       });
       return users.map((user) => this.excludePassword(user));
@@ -112,6 +115,14 @@ export class UserService {
     password: string,
   ): Promise<Username> {
     try {
+      const userExists = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!userExists) {
+        throw new NotFoundException('Usuário não encontrado');
+      }
+
       const existingUsername = await this.prisma.username.findUnique({
         where: {
           username_organizationId: {
@@ -149,6 +160,16 @@ export class UserService {
       });
     } catch (error) {
       throw new NotFoundException('Nome de usuário não encontrado.');
+    }
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      await this.prisma.user.delete({
+        where: { id: userId },
+      });
+    } catch (error) {
+      throw new NotFoundException('Usuário não encontrado.');
     }
   }
 

@@ -15,10 +15,10 @@ async function main() {
       lastSignInAt: null,
       banned: false,
       blocked: false,
-      organizationId: uuidv4(),
       personId: uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      password: await bcrypt.hash('defaultPassword123!', 10), // Adicionado
       usernames: {
         create: [
           {
@@ -43,10 +43,10 @@ async function main() {
       lastSignInAt: null,
       banned: false,
       blocked: false,
-      organizationId: uuidv4(),
       personId: uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      password: await bcrypt.hash('defaultPassword123!', 10), // Adicionado
       usernames: {
         create: [
           {
@@ -71,10 +71,10 @@ async function main() {
       lastSignInAt: null,
       banned: false,
       blocked: false,
-      organizationId: uuidv4(),
       personId: uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      password: await bcrypt.hash('defaultPassword123!', 10), // Adicionado
       usernames: {
         create: [
           {
