@@ -2,7 +2,6 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User, Username } from '@prisma/client';
@@ -30,7 +29,6 @@ export class UserService {
           usernames: {
             create: createUserDto.usernames.map((username) => ({
               username: username.username,
-              password: bcrypt.hashSync(username.password, 10),
               organizationId: username.organizationId,
             })),
           },
@@ -112,7 +110,6 @@ export class UserService {
     userId: string,
     username: string,
     organizationId: string,
-    password: string,
   ): Promise<Username> {
     try {
       const userExists = await this.prisma.user.findUnique({
@@ -138,13 +135,10 @@ export class UserService {
         );
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-
       return this.prisma.username.create({
         data: {
           userId,
           username,
-          password: hashedPassword,
           organizationId,
         },
       });
@@ -173,68 +167,27 @@ export class UserService {
     }
   }
 
-  async findUserByUsernameOrEmailOrId(
-    login: string,
-    password: string,
-  ): Promise<any> {
-    try {
-      const usernameRecord = await this.prisma.username.findFirst({
-        where: { username: login },
-        include: {
-          user: {
-            include: {
-              usernames: true,
-            },
-          },
-        },
-      });
+  async findUserByUsernameOrEmailOrId(login: string): Promise<User | null> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ usernames: { some: { username: login } } }, { id: login }],
+      },
+      include: { usernames: true },
+    });
 
-      if (!usernameRecord) {
-        throw new NotFoundException('Nome de usuário não encontrado');
-      }
-
-      if (usernameRecord.user.banned) {
-        throw new UnauthorizedException('Usuário banido');
-      }
-
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        usernameRecord.password,
-      );
-      if (!isPasswordValid) {
-        throw new UnauthorizedException('Senha inválida');
-      }
-
-      await this.prisma.user.update({
-        where: { id: usernameRecord.userId },
-        data: { lastSignInAt: new Date() },
-      });
-
-      return this.excludePassword(usernameRecord.user);
-    } catch (error) {
-      throw new UnauthorizedException('Erro ao validar usuário.');
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
     }
+
+    return user;
   }
 
-  async updatePassword(userId: string, password: string): Promise<any> {
-    try {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          usernames: {
-            updateMany: {
-              where: { userId },
-              data: { password: hashedPassword },
-            },
-          },
-        },
-        include: { usernames: true },
-      });
-      return this.excludePassword(user);
-    } catch (error) {
-      throw new NotFoundException('Erro ao atualizar a senha.');
-    }
+  async updatePassword(userId: string, newPassword: string): Promise<User> {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
   }
 
   async updateEnabledStatus(userId: string, enabled: boolean): Promise<any> {

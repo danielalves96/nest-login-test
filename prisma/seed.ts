@@ -5,11 +5,13 @@ import { v4 as uuidv4 } from 'uuid';
 const prisma = new PrismaClient();
 
 async function main() {
-  const password = await bcrypt.hash('12345678Ab!', 10);
+  const hashedPassword = await bcrypt.hash('12345678Ab!', 10);
+  const organizationId = uuidv4();
 
-  await prisma.user.create({
+  const user1 = await prisma.user.create({
     data: {
       id: uuidv4(),
+      password: hashedPassword,
       enabled: true,
       profileImageUrl: '',
       lastSignInAt: null,
@@ -18,26 +20,27 @@ async function main() {
       personId: uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      password: await bcrypt.hash('defaultPassword123!', 10), // Adicionado
       usernames: {
         create: [
           {
             id: uuidv4(),
             username: 'daniel.alves',
-            password,
-            organizationId: uuidv4(),
+            organizationId: organizationId,
+          },
+          {
+            id: uuidv4(),
+            username: 'daniel.alves@printerdobrasil.com.br',
+            organizationId: organizationId,
           },
         ],
       },
     },
-    include: {
-      usernames: true,
-    },
   });
 
-  await prisma.user.create({
+  const user2 = await prisma.user.create({
     data: {
       id: uuidv4(),
+      password: hashedPassword,
       enabled: true,
       profileImageUrl: '',
       lastSignInAt: null,
@@ -46,26 +49,27 @@ async function main() {
       personId: uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      password: await bcrypt.hash('defaultPassword123!', 10), // Adicionado
       usernames: {
         create: [
           {
             id: uuidv4(),
             username: 'paola.oliveira',
-            password,
-            organizationId: uuidv4(),
+            organizationId: organizationId,
+          },
+          {
+            id: uuidv4(),
+            username: 'paola.oliveira@printerdobrasil.com.br',
+            organizationId: organizationId,
           },
         ],
       },
     },
-    include: {
-      usernames: true,
-    },
   });
 
-  await prisma.user.create({
+  const user3 = await prisma.user.create({
     data: {
       id: uuidv4(),
+      password: hashedPassword,
       enabled: true,
       profileImageUrl: '',
       lastSignInAt: null,
@@ -74,28 +78,104 @@ async function main() {
       personId: uuidv4(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      password: await bcrypt.hash('defaultPassword123!', 10), // Adicionado
       usernames: {
         create: [
           {
             id: uuidv4(),
             username: 'katia.werner',
-            password,
-            organizationId: uuidv4(),
+            organizationId: organizationId,
+          },
+          {
+            id: uuidv4(),
+            username: 'katia.werner@printerdobrasil.com.br',
+            organizationId: organizationId,
           },
         ],
       },
     },
-    include: {
-      usernames: true,
+  });
+
+  const user4 = await prisma.user.create({
+    data: {
+      id: uuidv4(),
+      password: hashedPassword,
+      enabled: true,
+      profileImageUrl: '',
+      lastSignInAt: null,
+      banned: false,
+      blocked: false,
+      personId: uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      usernames: {
+        create: [
+          {
+            id: uuidv4(),
+            username: 'alan.rehfeldt',
+            organizationId: organizationId,
+          },
+        ],
+      },
     },
   });
 
-  console.log('Seed data created');
+  const user5 = await prisma.user.create({
+    data: {
+      id: uuidv4(),
+      password: hashedPassword,
+      enabled: true,
+      profileImageUrl: '',
+      lastSignInAt: null,
+      banned: false,
+      blocked: false,
+      personId: uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      usernames: {
+        create: [
+          {
+            id: uuidv4(),
+            username: 'mizael.jesus',
+            organizationId: organizationId,
+          },
+        ],
+      },
+    },
+  });
+
+  const user6 = await prisma.user.create({
+    data: {
+      id: uuidv4(),
+      password: hashedPassword,
+      enabled: true,
+      profileImageUrl: '',
+      lastSignInAt: null,
+      banned: false,
+      blocked: false,
+      personId: uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      usernames: {
+        create: [
+          {
+            id: uuidv4(),
+            username: 'victor.matveichuk',
+            organizationId: organizationId,
+          },
+        ],
+      },
+    },
+  });
+
+  console.log({ user1, user2, user3, user4, user5, user6 });
 }
 
 main()
-  .catch((e) => console.error(e))
-  .finally(async () => {
+  .then(async () => {
     await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
   });

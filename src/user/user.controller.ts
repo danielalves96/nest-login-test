@@ -170,14 +170,8 @@ export class UserController {
     @Param('userId') userId: string,
     @Param('username') username: string,
     @Param('organizationId') organizationId: string,
-    @Body('password') password: string,
   ) {
-    return this.userService.createUsername(
-      userId,
-      username,
-      organizationId,
-      password,
-    );
+    return this.userService.createUsername(userId, username, organizationId);
   }
 
   @Delete('username/:id')

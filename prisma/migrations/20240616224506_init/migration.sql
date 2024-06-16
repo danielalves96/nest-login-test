@@ -3,10 +3,10 @@ CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "enabled" BOOLEAN NOT NULL,
-    "profileImageUrl" TEXT NOT NULL,
+    "profileImageUrl" TEXT,
     "lastSignInAt" TIMESTAMP(3),
-    "banned" BOOLEAN NOT NULL,
-    "blocked" BOOLEAN NOT NULL,
+    "banned" BOOLEAN NOT NULL DEFAULT false,
+    "blocked" BOOLEAN NOT NULL DEFAULT false,
     "personId" TEXT NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -17,10 +17,9 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Username" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
     "username" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
 
     CONSTRAINT "Username_pkey" PRIMARY KEY ("id")
 );
@@ -29,4 +28,4 @@ CREATE TABLE "Username" (
 CREATE UNIQUE INDEX "Username_username_organizationId_key" ON "Username"("username", "organizationId");
 
 -- AddForeignKey
-ALTER TABLE "Username" ADD CONSTRAINT "Username_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Username" ADD CONSTRAINT "Username_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
