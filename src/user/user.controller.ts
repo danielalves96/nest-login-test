@@ -8,6 +8,10 @@ import {
   Delete,
   UseGuards,
   Request,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -18,15 +22,32 @@ import {
   ApiBody,
   ApiParam,
   ApiBearerAuth,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import { UploadService } from '../upload/upload.service';
+import * as multer from 'multer';
 
+const storage = multer.memoryStorage();
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new BadRequestException('Tipo de arquivo não suportado'), false);
+  }
+};
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Cria um novo usuário' })
@@ -69,23 +90,6 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
   getUserById(@Param('id') id: string) {
     return this.userService.findOneById(id);
-  }
-
-  @Patch(':id/profile-image')
-  @ApiOperation({ summary: 'Atualiza a imagem de perfil do usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiBody({
-    schema: { example: { profileImageUrl: 'http://example.com/profile.jpg' } },
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Imagem de perfil atualizada com sucesso.',
-  })
-  updateProfileImage(
-    @Param('id') id: string,
-    @Body('profileImageUrl') profileImageUrl: string,
-  ) {
-    return this.userService.updateProfileImage(id, profileImageUrl);
   }
 
   @Patch(':id/password')
@@ -193,5 +197,44 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Usuário deletado com sucesso.' })
   deleteUser(@Param('id') id: string) {
     return this.userService.deleteUser(id);
+  }
+
+  @Patch(':id/profile-image')
+  @UseInterceptors(FileInterceptor('file', { storage, fileFilter }))
+  @ApiOperation({ summary: 'Atualiza a imagem de perfil do usuário' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Arquivo de imagem',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Imagem de perfil atualizada com sucesso.',
+  })
+  async updateProfileImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const user = await this.userService.findOneById(id);
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const profileImageUrl = await this.uploadService.uploadFile(
+      file,
+      user.id,
+      user.usernames[0].username,
+    );
+    return this.userService.updateProfileImage(id, profileImageUrl);
   }
 }

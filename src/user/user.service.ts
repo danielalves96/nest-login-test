@@ -216,22 +216,6 @@ export class UserService {
     }
   }
 
-  async updateProfileImage(
-    userId: string,
-    profileImageUrl: string,
-  ): Promise<any> {
-    try {
-      const user = await this.prisma.user.update({
-        where: { id: userId },
-        data: { profileImageUrl },
-        include: { usernames: true },
-      });
-      return this.excludePassword(user);
-    } catch (error) {
-      throw new NotFoundException('Erro ao atualizar a imagem de perfil.');
-    }
-  }
-
   async updatePassword(userId: string, password: string): Promise<any> {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -295,5 +279,21 @@ export class UserService {
   private excludePassword(user: User & { usernames: Username[] }) {
     const usernames = user.usernames.map(({ ...rest }) => rest);
     return { ...user, usernames };
+  }
+
+  async updateProfileImage(
+    userId: string,
+    profileImageUrl: string,
+  ): Promise<any> {
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: { profileImageUrl },
+        include: { usernames: true },
+      });
+      return this.excludePassword(user);
+    } catch (error) {
+      throw new NotFoundException('Erro ao atualizar a imagem de perfil.');
+    }
   }
 }
