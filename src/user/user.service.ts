@@ -1,13 +1,10 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+// src/user/user.service.ts
+
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User, Username } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-
 import { PasswordValidator } from 'src/utils/password-validator';
 import { ErrorHandler } from 'src/utils/error-handler';
 
@@ -44,7 +41,7 @@ export class UserService {
 
       return this.excludePassword(user);
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, 'Erro ao criar usuário.');
     }
   }
 
@@ -56,7 +53,7 @@ export class UserService {
       });
       return users.map((user) => this.excludePassword(user));
     } catch (error) {
-      throw new NotFoundException('Erro ao buscar usuários pela organização.');
+      ErrorHandler.handle(error, 'Erro ao buscar usuários pela organização.');
     }
   }
 
@@ -67,11 +64,11 @@ export class UserService {
         include: { usernames: true },
       });
       if (!user) {
-        throw new NotFoundException('Usuário não encontrado');
+        ErrorHandler.notFound('Usuário não encontrado');
       }
       return this.excludePassword(user);
     } catch (error) {
-      throw new NotFoundException('Erro ao buscar usuário pelo ID.');
+      ErrorHandler.handle(error, 'Erro ao buscar usuário pelo ID.');
     }
   }
 
@@ -97,14 +94,13 @@ export class UserService {
       });
 
       if (!usernameRecord) {
-        throw new NotFoundException(
-          'Nome de usuário não encontrado na organização',
-        );
+        ErrorHandler.notFound('Nome de usuário não encontrado na organização');
       }
 
       return this.excludePassword(usernameRecord.user);
     } catch (error) {
-      throw new NotFoundException(
+      ErrorHandler.handle(
+        error,
         'Erro ao buscar usuário pelo nome de usuário.',
       );
     }
@@ -121,7 +117,7 @@ export class UserService {
       });
 
       if (!userExists) {
-        throw new NotFoundException('Usuário não encontrado');
+        ErrorHandler.notFound('Usuário não encontrado');
       }
 
       const existingUsername = await this.prisma.username.findUnique({
@@ -134,9 +130,7 @@ export class UserService {
       });
 
       if (existingUsername) {
-        throw new ConflictException(
-          'Este nome de usuário já existe na organização.',
-        );
+        ErrorHandler.conflict('Este nome de usuário já existe na organização');
       }
 
       return this.prisma.username.create({
@@ -147,7 +141,7 @@ export class UserService {
         },
       });
     } catch (error) {
-      throw new ConflictException('Erro ao criar nome de usuário.');
+      ErrorHandler.handle(error, 'Erro ao criar nome de usuário.');
     }
   }
 
@@ -157,7 +151,7 @@ export class UserService {
         where: { id: usernameId },
       });
     } catch (error) {
-      throw new NotFoundException('Nome de usuário não encontrado.');
+      ErrorHandler.handle(error, 'Erro ao deletar nome de usuário.');
     }
   }
 
@@ -167,23 +161,27 @@ export class UserService {
         where: { id: userId },
       });
     } catch (error) {
-      throw new NotFoundException('Usuário não encontrado.');
+      ErrorHandler.handle(error, 'Erro ao deletar usuário.');
     }
   }
 
   async findUserByUsernameOrEmailOrId(login: string): Promise<User | null> {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        OR: [{ usernames: { some: { username: login } } }, { id: login }],
-      },
-      include: { usernames: true },
-    });
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          OR: [{ usernames: { some: { username: login } } }, { id: login }],
+        },
+        include: { usernames: true },
+      });
 
-    if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      if (!user) {
+        ErrorHandler.notFound('Usuário não encontrado');
+      }
+
+      return user;
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao buscar usuário pelo login.');
     }
-
-    return user;
   }
 
   async updatePassword(userId: string, newPassword: string): Promise<User> {
@@ -195,7 +193,7 @@ export class UserService {
         data: { password: hashedPassword },
       });
     } catch (error) {
-      ErrorHandler.handle(error);
+      ErrorHandler.handle(error, 'Erro ao atualizar a senha.');
     }
   }
 
@@ -208,7 +206,7 @@ export class UserService {
       });
       return this.excludePassword(user);
     } catch (error) {
-      throw new NotFoundException('Erro ao atualizar o status de habilitação.');
+      ErrorHandler.handle(error, 'Erro ao atualizar o status de enabled.');
     }
   }
 
@@ -221,7 +219,7 @@ export class UserService {
       });
       return this.excludePassword(user);
     } catch (error) {
-      throw new NotFoundException('Erro ao atualizar o status de bloqueio.');
+      ErrorHandler.handle(error, 'Erro ao atualizar o status de bloqueio.');
     }
   }
 
@@ -234,7 +232,7 @@ export class UserService {
       });
       return this.excludePassword(user);
     } catch (error) {
-      throw new NotFoundException('Erro ao atualizar o status de banimento.');
+      ErrorHandler.handle(error, 'Erro ao atualizar o status de banimento.');
     }
   }
 
@@ -255,7 +253,7 @@ export class UserService {
       });
       return this.excludePassword(user);
     } catch (error) {
-      throw new NotFoundException('Erro ao atualizar a imagem de perfil.');
+      ErrorHandler.handle(error, 'Erro ao atualizar a imagem de perfil.');
     }
   }
 }

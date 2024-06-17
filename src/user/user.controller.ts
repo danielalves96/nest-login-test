@@ -1,3 +1,5 @@
+// src/user/user.controller.ts
+
 import {
   Controller,
   Get,
@@ -10,8 +12,6 @@ import {
   Request,
   UploadedFile,
   UseInterceptors,
-  BadRequestException,
-  NotFoundException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -30,6 +30,7 @@ import { Express } from 'express';
 import { UploadService } from '../upload/upload.service';
 import * as multer from 'multer';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { ErrorHandler } from 'src/utils/error-handler';
 
 const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
@@ -37,9 +38,10 @@ const fileFilter = (req, file, cb) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new BadRequestException('Tipo de arquivo não suportado'), false);
+    cb(new Error('Tipo de arquivo não suportado'), false);
   }
 };
+
 @ApiTags('users')
 @ApiBearerAuth()
 @Controller('users')
@@ -55,7 +57,11 @@ export class UserController {
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso.' })
   @ApiBody({ type: CreateUserDto })
   async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
+    try {
+      return await this.userService.createUser(createUserDto);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao criar usuário.');
+    }
   }
 
   @Get()
@@ -65,8 +71,14 @@ export class UserController {
     description: 'Lista de todos os usuários da mesma organização.',
     type: [CreateUserDto],
   })
-  findAll(@Request() req) {
-    return this.userService.findAllByOrganization(req.user.organizationId);
+  async findAll(@Request() req) {
+    try {
+      return await this.userService.findAllByOrganization(
+        req.user.organizationId,
+      );
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao buscar usuários pela organização.');
+    }
   }
 
   @Get('me')
@@ -76,8 +88,12 @@ export class UserController {
     description: 'Dados do usuário logado.',
     type: CreateUserDto,
   })
-  getProfile(@Request() req) {
-    return this.userService.findOneById(req.user.userId);
+  async getProfile(@Request() req) {
+    try {
+      return await this.userService.findOneById(req.user.userId);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao buscar dados do usuário logado.');
+    }
   }
 
   @Get(':id')
@@ -89,8 +105,12 @@ export class UserController {
     type: CreateUserDto,
   })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
-  getUserById(@Param('id') id: string) {
-    return this.userService.findOneById(id);
+  async getUserById(@Param('id') id: string) {
+    try {
+      return await this.userService.findOneById(id);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao buscar usuário pelo ID.');
+    }
   }
 
   @Patch(':id/password')
@@ -102,31 +122,47 @@ export class UserController {
     @Param('id') id: string,
     @Body() { newPassword }: UpdatePasswordDto,
   ) {
-    return this.userService.updatePassword(id, newPassword);
+    try {
+      return await this.userService.updatePassword(id, newPassword);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao atualizar a senha.');
+    }
   }
 
   @Patch(':id/enable')
   @ApiOperation({ summary: 'Ativa um usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário ativado com sucesso.' })
-  enableUser(@Param('id') id: string) {
-    return this.userService.updateEnabledStatus(id, true);
+  async enableUser(@Param('id') id: string) {
+    try {
+      return await this.userService.updateEnabledStatus(id, true);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao ativar usuário.');
+    }
   }
 
   @Patch(':id/disable')
   @ApiOperation({ summary: 'Desativa um usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário desativado com sucesso.' })
-  disableUser(@Param('id') id: string) {
-    return this.userService.updateEnabledStatus(id, false);
+  async disableUser(@Param('id') id: string) {
+    try {
+      return await this.userService.updateEnabledStatus(id, false);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao desativar usuário.');
+    }
   }
 
   @Patch(':id/block')
   @ApiOperation({ summary: 'Bloqueia um usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário bloqueado com sucesso.' })
-  blockUser(@Param('id') id: string) {
-    return this.userService.updateBlockedStatus(id, true);
+  async blockUser(@Param('id') id: string) {
+    try {
+      return await this.userService.updateBlockedStatus(id, true);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao bloquear usuário.');
+    }
   }
 
   @Patch(':id/unblock')
@@ -136,24 +172,36 @@ export class UserController {
     status: 200,
     description: 'Usuário desbloqueado com sucesso.',
   })
-  unblockUser(@Param('id') id: string) {
-    return this.userService.updateBlockedStatus(id, false);
+  async unblockUser(@Param('id') id: string) {
+    try {
+      return await this.userService.updateBlockedStatus(id, false);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao desbloquear usuário.');
+    }
   }
 
   @Patch(':id/ban')
   @ApiOperation({ summary: 'Bane um usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário banido com sucesso.' })
-  banUser(@Param('id') id: string) {
-    return this.userService.updateBannedStatus(id, true);
+  async banUser(@Param('id') id: string) {
+    try {
+      return await this.userService.updateBannedStatus(id, true);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao banir usuário.');
+    }
   }
 
   @Patch(':id/unban')
   @ApiOperation({ summary: 'Desbane um usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário desbanido com sucesso.' })
-  unbanUser(@Param('id') id: string) {
-    return this.userService.updateBannedStatus(id, false);
+  async unbanUser(@Param('id') id: string) {
+    try {
+      return await this.userService.updateBannedStatus(id, false);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao desbanir usuário.');
+    }
   }
 
   @Post('username/:userId/:username/:organizationId')
@@ -170,12 +218,20 @@ export class UserController {
     status: 409,
     description: 'Nome de usuário já existe na organização.',
   })
-  createUsername(
+  async createUsername(
     @Param('userId') userId: string,
     @Param('username') username: string,
     @Param('organizationId') organizationId: string,
   ) {
-    return this.userService.createUsername(userId, username, organizationId);
+    try {
+      return await this.userService.createUsername(
+        userId,
+        username,
+        organizationId,
+      );
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao criar nome de usuário.');
+    }
   }
 
   @Delete('username/:id')
@@ -185,16 +241,24 @@ export class UserController {
     status: 200,
     description: 'Nome de usuário deletado com sucesso.',
   })
-  deleteUsername(@Param('id') id: string) {
-    return this.userService.deleteUsername(id);
+  async deleteUsername(@Param('id') id: string) {
+    try {
+      return await this.userService.deleteUsername(id);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao deletar nome de usuário.');
+    }
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Deleta um usuário pelo ID' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({ status: 200, description: 'Usuário deletado com sucesso.' })
-  deleteUser(@Param('id') id: string) {
-    return this.userService.deleteUser(id);
+  async deleteUser(@Param('id') id: string) {
+    try {
+      return await this.userService.deleteUser(id);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao deletar usuário.');
+    }
   }
 
   @Patch(':id/profile-image')
@@ -222,17 +286,21 @@ export class UserController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const user = await this.userService.findOneById(id);
+    try {
+      const user = await this.userService.findOneById(id);
 
-    if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
+      if (!user) {
+        ErrorHandler.notFound('Usuário não encontrado');
+      }
+
+      const profileImageUrl = await this.uploadService.uploadFile(
+        file,
+        user.id,
+        user.usernames[0].username,
+      );
+      return await this.userService.updateProfileImage(id, profileImageUrl);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao atualizar a imagem de perfil.');
     }
-
-    const profileImageUrl = await this.uploadService.uploadFile(
-      file,
-      user.id,
-      user.usernames[0].username,
-    );
-    return this.userService.updateProfileImage(id, profileImageUrl);
   }
 }

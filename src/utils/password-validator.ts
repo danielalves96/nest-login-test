@@ -4,12 +4,12 @@ import {
   MinLength,
   Matches,
 } from 'class-validator';
-import { BadRequestException } from '@nestjs/common';
+import { ErrorHandler } from './error-handler';
 
 export class PasswordValidator {
   @IsString({ message: 'A senha deve ser uma string' })
   @MinLength(8, { message: 'A senha deve ter pelo menos 8 caracteres' })
-  @Matches(/[a-z]/, { message: 'A senha deve conter letras minúsculas' })
+  @Matches(/[A-Za-z]/, { message: 'A senha deve conter letras' })
   @Matches(/[0-9]/, { message: 'A senha deve conter números' })
   @Matches(/[^A-Za-z0-9]/, {
     message: 'A senha deve conter pelo menos um caractere especial',
@@ -32,8 +32,9 @@ export class PasswordValidator {
       const errorMessages = errors
         .map((error) => Object.values(error.constraints).join(', '))
         .join(', ');
-      throw new BadRequestException(
-        `Erro de validação da senha: ${errorMessages}`,
+      ErrorHandler.handle(
+        new Error(errorMessages),
+        'Erro de validação da senha:',
       );
     }
   }
