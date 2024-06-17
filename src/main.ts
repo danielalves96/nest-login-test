@@ -12,8 +12,8 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('My Project API')
-    .setDescription('API description')
+    .setTitle('NestJS Auth with Organization')
+    .setDescription('API Rest for authentication')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

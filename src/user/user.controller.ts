@@ -12,7 +12,6 @@ import {
   UseInterceptors,
   BadRequestException,
   NotFoundException,
-  ConflictException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -56,16 +55,7 @@ export class UserController {
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso.' })
   @ApiBody({ type: CreateUserDto })
   async createUser(@Body() createUserDto: CreateUserDto) {
-    try {
-      return await this.userService.createUser(createUserDto);
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw new BadRequestException(error.message);
-      } else if (error instanceof ConflictException) {
-        throw new ConflictException('Erro ao criar usuário.');
-      }
-      throw new BadRequestException('Erro inesperado ao criar usuário.');
-    }
+    return this.userService.createUser(createUserDto);
   }
 
   @Get()

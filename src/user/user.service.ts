@@ -2,20 +2,21 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User, Username } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { UpdatePasswordDto } from './dto/update-password.dto';
-import { validateOrReject } from 'class-validator';
+
+import { PasswordValidator } from 'src/utils/password-validator';
+import { ErrorHandler } from 'src/utils/error-handler';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<any> {
+    await PasswordValidator.validate(createUserDto.password);
     try {
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const user = await this.prisma.user.create({
@@ -43,7 +44,7 @@ export class UserService {
 
       return this.excludePassword(user);
     } catch (error) {
-      throw new ConflictException('Erro ao criar usuário.');
+      ErrorHandler.handle(error);
     }
   }
 
@@ -186,30 +187,16 @@ export class UserService {
   }
 
   async updatePassword(userId: string, newPassword: string): Promise<User> {
-    // Validação da senha
-    const updatePasswordDto = new UpdatePasswordDto();
-    updatePasswordDto.newPassword = newPassword;
-
+    await PasswordValidator.validate(newPassword);
     try {
-      await validateOrReject(updatePasswordDto, {
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        forbidUnknownValues: true,
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      return this.prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
       });
-    } catch (errors) {
-      const errorMessages = errors
-        .map((error) => Object.values(error.constraints).join(', '))
-        .join(', ');
-      throw new BadRequestException(
-        `Erro de validação da senha: ${errorMessages}`,
-      );
+    } catch (error) {
+      ErrorHandler.handle(error);
     }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
   }
 
   async updateEnabledStatus(userId: string, enabled: boolean): Promise<any> {

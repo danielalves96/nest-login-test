@@ -12,7 +12,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Autentica o usuário e retorna um token JWT' })
   @ApiBody({
     schema: {
-      example: { login: 'username ou id', password: '12345678Ab!' },
+      example: { login: 'username', password: '12345678Ab!' },
     },
   })
   @ApiResponse({ status: 201, description: 'Login bem-sucedido.' })
