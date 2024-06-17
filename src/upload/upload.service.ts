@@ -27,7 +27,7 @@ export class UploadService {
     userId: string,
     username: string,
   ): Promise<string> {
-    const date = new Date().toISOString().split('T')[0]; // format as YYYY-MM-DD
+    const date = new Date().toISOString().split('T')[0];
     const originalName = path.basename(
       file.originalname,
       path.extname(file.originalname),
@@ -40,7 +40,6 @@ export class UploadService {
     }
 
     try {
-      // Excluir todos os arquivos existentes que contêm o userId no nome
       await this.deleteFilesWithUserId(userId);
 
       console.log(`Uploading file: ${key}`);
@@ -55,11 +54,10 @@ export class UploadService {
 
       console.log('File uploaded successfully:', key);
 
-      // Gerar URL pré-assinada para acesso público
       const signedUrl = this.s3.getSignedUrl('getObject', {
         Bucket: this.bucketName,
         Key: key,
-        Expires: 315360000, // Expira em 10 anos
+        Expires: 315360000,
       });
 
       console.log('Generated signed URL:', signedUrl);

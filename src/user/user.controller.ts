@@ -39,7 +39,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-@ApiTags('users')
+@ApiTags('Users')
 @ApiBearerAuth()
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -51,7 +51,7 @@ export class UserController {
 
   // GET Operations
   @Get()
-  @ApiOperation({ summary: 'Obtém todos os usuários da mesma organização' })
+  @ApiOperation({ summary: 'Obtém todos os usuários' })
   @ApiResponse({
     status: 200,
     description: 'Lista de todos os usuários da mesma organização.',
