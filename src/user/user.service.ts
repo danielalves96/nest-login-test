@@ -68,7 +68,7 @@ export class UserService {
       }
       return this.excludePassword(user);
     } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao buscar usuário pelo ID.');
+      ErrorHandler.handle(error, 'Usuário não encontrado');
     }
   }
 
@@ -94,15 +94,12 @@ export class UserService {
       });
 
       if (!usernameRecord) {
-        ErrorHandler.notFound('Nome de usuário não encontrado na organização');
+        ErrorHandler.notFound('username não encontrado');
       }
 
       return this.excludePassword(usernameRecord.user);
     } catch (error) {
-      ErrorHandler.handle(
-        error,
-        'Erro ao buscar usuário pelo nome de usuário.',
-      );
+      ErrorHandler.handle(error, 'Erro ao buscar usuário pelo username.');
     }
   }
 
@@ -180,7 +177,7 @@ export class UserService {
 
       return user;
     } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao buscar usuário pelo login.');
+      ErrorHandler.handle(error, 'Usuário não encontrado');
     }
   }
 
