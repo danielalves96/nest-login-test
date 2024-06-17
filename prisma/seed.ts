@@ -135,30 +135,6 @@ async function main() {
         create: [
           {
             id: uuidv4(),
-            username: 'mizael.jesus',
-            organizationId: organizationId,
-          },
-        ],
-      },
-    },
-  });
-
-  const user6 = await prisma.user.create({
-    data: {
-      id: uuidv4(),
-      password: hashedPassword,
-      enabled: true,
-      profileImageUrl: '',
-      lastSignInAt: null,
-      banned: false,
-      blocked: false,
-      personId: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      usernames: {
-        create: [
-          {
-            id: uuidv4(),
             username: 'victor.matveichuk',
             organizationId: organizationId,
           },
@@ -167,7 +143,7 @@ async function main() {
     },
   });
 
-  console.log({ user1, user2, user3, user4, user5, user6 });
+  console.log({ user1, user2, user3, user4, user5 });
 }
 
 main()

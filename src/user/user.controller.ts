@@ -1,5 +1,3 @@
-// src/user/user.controller.ts
-
 import {
   Controller,
   Get,
@@ -27,10 +25,9 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
-import { UploadService } from '../upload/upload.service';
-import * as multer from 'multer';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { ErrorHandler } from 'src/utils/error-handler';
+import { UploadService } from 'src/upload/upload.service';
+import * as multer from 'multer';
 
 const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
@@ -52,18 +49,7 @@ export class UserController {
     private readonly uploadService: UploadService,
   ) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Cria um novo usuário' })
-  @ApiResponse({ status: 201, description: 'Usuário criado com sucesso.' })
-  @ApiBody({ type: CreateUserDto })
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    try {
-      return await this.userService.createUser(createUserDto);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao criar usuário.');
-    }
-  }
-
+  // GET Operations
   @Get()
   @ApiOperation({ summary: 'Obtém todos os usuários da mesma organização' })
   @ApiResponse({
@@ -72,13 +58,7 @@ export class UserController {
     type: [CreateUserDto],
   })
   async findAll(@Request() req) {
-    try {
-      return await this.userService.findAllByOrganization(
-        req.user.organizationId,
-      );
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao buscar usuários pela organização.');
-    }
+    return this.userService.findAllByOrganization(req.user.organizationId);
   }
 
   @Get('me')
@@ -89,11 +69,20 @@ export class UserController {
     type: CreateUserDto,
   })
   async getProfile(@Request() req) {
-    try {
-      return await this.userService.findOneById(req.user.userId);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao buscar dados do usuário logado.');
-    }
+    return this.userService.findOneById(req.user.userId);
+  }
+
+  @Get('count')
+  @ApiOperation({ summary: 'Obtém o total de usuários' })
+  @ApiResponse({
+    status: 200,
+    description: 'Total de usuários.',
+    schema: {
+      example: { total: 0 },
+    },
+  })
+  async getTotalUsers() {
+    return this.userService.getTotalUsers();
   }
 
   @Get(':id')
@@ -106,102 +95,16 @@ export class UserController {
   })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
   async getUserById(@Param('id') id: string) {
-    try {
-      return await this.userService.findOneById(id);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao buscar usuário pelo ID.');
-    }
+    return this.userService.findOneById(id);
   }
 
-  @Patch(':id/password')
-  @ApiOperation({ summary: 'Atualiza a senha do usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiBody({ schema: { example: { newPassword: '12345678Ab!' } } })
-  @ApiResponse({ status: 200, description: 'Senha atualizada com sucesso.' })
-  async updatePassword(
-    @Param('id') id: string,
-    @Body() { newPassword }: UpdatePasswordDto,
-  ) {
-    try {
-      return await this.userService.updatePassword(id, newPassword);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao atualizar a senha.');
-    }
-  }
-
-  @Patch(':id/enable')
-  @ApiOperation({ summary: 'Ativa um usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário ativado com sucesso.' })
-  async enableUser(@Param('id') id: string) {
-    try {
-      return await this.userService.updateEnabledStatus(id, true);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao ativar usuário.');
-    }
-  }
-
-  @Patch(':id/disable')
-  @ApiOperation({ summary: 'Desativa um usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário desativado com sucesso.' })
-  async disableUser(@Param('id') id: string) {
-    try {
-      return await this.userService.updateEnabledStatus(id, false);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao desativar usuário.');
-    }
-  }
-
-  @Patch(':id/block')
-  @ApiOperation({ summary: 'Bloqueia um usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário bloqueado com sucesso.' })
-  async blockUser(@Param('id') id: string) {
-    try {
-      return await this.userService.updateBlockedStatus(id, true);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao bloquear usuário.');
-    }
-  }
-
-  @Patch(':id/unblock')
-  @ApiOperation({ summary: 'Desbloqueia um usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({
-    status: 200,
-    description: 'Usuário desbloqueado com sucesso.',
-  })
-  async unblockUser(@Param('id') id: string) {
-    try {
-      return await this.userService.updateBlockedStatus(id, false);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao desbloquear usuário.');
-    }
-  }
-
-  @Patch(':id/ban')
-  @ApiOperation({ summary: 'Bane um usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário banido com sucesso.' })
-  async banUser(@Param('id') id: string) {
-    try {
-      return await this.userService.updateBannedStatus(id, true);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao banir usuário.');
-    }
-  }
-
-  @Patch(':id/unban')
-  @ApiOperation({ summary: 'Desbane um usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário desbanido com sucesso.' })
-  async unbanUser(@Param('id') id: string) {
-    try {
-      return await this.userService.updateBannedStatus(id, false);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao desbanir usuário.');
-    }
+  // POST Operations
+  @Post()
+  @ApiOperation({ summary: 'Cria um novo usuário' })
+  @ApiResponse({ status: 201, description: 'Usuário criado com sucesso.' })
+  @ApiBody({ type: CreateUserDto })
+  async createUser(@Body() createUserDto: CreateUserDto) {
+    return this.userService.createUser(createUserDto);
   }
 
   @Post('username/:userId/:username/:organizationId')
@@ -223,42 +126,71 @@ export class UserController {
     @Param('username') username: string,
     @Param('organizationId') organizationId: string,
   ) {
-    try {
-      return await this.userService.createUsername(
-        userId,
-        username,
-        organizationId,
-      );
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao criar nome de usuário.');
-    }
+    return this.userService.createUsername(userId, username, organizationId);
   }
 
-  @Delete('username/:id')
-  @ApiOperation({ summary: 'Deleta um nome de usuário' })
-  @ApiParam({ name: 'id', description: 'ID do nome de usuário' })
+  // PATCH Operations
+  @Patch(':id/password')
+  @ApiOperation({ summary: 'Atualiza a senha do usuário' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiBody({ schema: { example: { newPassword: '12345678Ab!' } } })
+  @ApiResponse({ status: 200, description: 'Senha atualizada com sucesso.' })
+  async updatePassword(
+    @Param('id') id: string,
+    @Body() { newPassword }: UpdatePasswordDto,
+  ) {
+    return this.userService.updatePassword(id, newPassword);
+  }
+
+  @Patch(':id/enable')
+  @ApiOperation({ summary: 'Ativa um usuário' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Usuário ativado com sucesso.' })
+  async enableUser(@Param('id') id: string) {
+    return this.userService.updateEnabledStatus(id, true);
+  }
+
+  @Patch(':id/disable')
+  @ApiOperation({ summary: 'Desativa um usuário' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Usuário desativado com sucesso.' })
+  async disableUser(@Param('id') id: string) {
+    return this.userService.updateEnabledStatus(id, false);
+  }
+
+  @Patch(':id/block')
+  @ApiOperation({ summary: 'Bloqueia um usuário' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Usuário bloqueado com sucesso.' })
+  async blockUser(@Param('id') id: string) {
+    return this.userService.updateBlockedStatus(id, true);
+  }
+
+  @Patch(':id/unblock')
+  @ApiOperation({ summary: 'Desbloqueia um usuário' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
   @ApiResponse({
     status: 200,
-    description: 'Nome de usuário deletado com sucesso.',
+    description: 'Usuário desbloqueado com sucesso.',
   })
-  async deleteUsername(@Param('id') id: string) {
-    try {
-      return await this.userService.deleteUsername(id);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao deletar nome de usuário.');
-    }
+  async unblockUser(@Param('id') id: string) {
+    return this.userService.updateBlockedStatus(id, false);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Deleta um usuário pelo ID' })
+  @Patch(':id/ban')
+  @ApiOperation({ summary: 'Bane um usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiResponse({ status: 200, description: 'Usuário deletado com sucesso.' })
-  async deleteUser(@Param('id') id: string) {
-    try {
-      return await this.userService.deleteUser(id);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao deletar usuário.');
-    }
+  @ApiResponse({ status: 200, description: 'Usuário banido com sucesso.' })
+  async banUser(@Param('id') id: string) {
+    return this.userService.updateBannedStatus(id, true);
+  }
+
+  @Patch(':id/unban')
+  @ApiOperation({ summary: 'Desbane um usuário' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Usuário desbanido com sucesso.' })
+  async unbanUser(@Param('id') id: string) {
+    return this.userService.updateBannedStatus(id, false);
   }
 
   @Patch(':id/profile-image')
@@ -286,21 +218,31 @@ export class UserController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    try {
-      const user = await this.userService.findOneById(id);
+    const profileImageUrl = await this.uploadService.uploadFile(
+      file,
+      id,
+      (await this.userService.findOneById(id)).usernames[0].username,
+    );
+    return this.userService.updateProfileImage(id, profileImageUrl);
+  }
 
-      if (!user) {
-        ErrorHandler.notFound('Usuário não encontrado');
-      }
+  // DELETE Operations
+  @Delete('username/:id')
+  @ApiOperation({ summary: 'Deleta um nome de usuário' })
+  @ApiParam({ name: 'id', description: 'ID do nome de usuário' })
+  @ApiResponse({
+    status: 200,
+    description: 'Nome de usuário deletado com sucesso.',
+  })
+  async deleteUsername(@Param('id') id: string) {
+    return this.userService.deleteUsername(id);
+  }
 
-      const profileImageUrl = await this.uploadService.uploadFile(
-        file,
-        user.id,
-        user.usernames[0].username,
-      );
-      return await this.userService.updateProfileImage(id, profileImageUrl);
-    } catch (error) {
-      ErrorHandler.handle(error, 'Erro ao atualizar a imagem de perfil.');
-    }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Deleta um usuário pelo ID' })
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiResponse({ status: 200, description: 'Usuário deletado com sucesso.' })
+  async deleteUser(@Param('id') id: string) {
+    return this.userService.deleteUser(id);
   }
 }

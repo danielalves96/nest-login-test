@@ -1,5 +1,3 @@
-// src/user/user.service.ts
-
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User, Username } from '@prisma/client';
@@ -42,6 +40,15 @@ export class UserService {
       return this.excludePassword(user);
     } catch (error) {
       ErrorHandler.handle(error, 'Erro ao criar usuário.');
+    }
+  }
+
+  async getTotalUsers(): Promise<{ total: number }> {
+    try {
+      const total = await this.prisma.user.count();
+      return { total };
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao contar usuários.');
     }
   }
 
