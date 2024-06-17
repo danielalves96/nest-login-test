@@ -35,6 +35,7 @@ async function bootstrap() {
     '/authentication/api',
     apiReference({
       theme: 'kepler',
+      hideModels: true,
       spec: {
         content: document,
       },

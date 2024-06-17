@@ -1,10 +1,11 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
   @Get()
+  @ApiOperation({ summary: 'Testa o servidor' })
   healthCheck() {
     const data = {
       uptime: process.uptime(),
