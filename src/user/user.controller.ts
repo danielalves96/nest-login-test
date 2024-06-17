@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   BadRequestException,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,6 +30,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { UploadService } from '../upload/upload.service';
 import * as multer from 'multer';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
@@ -51,10 +53,19 @@ export class UserController {
 
   @Post()
   @ApiOperation({ summary: 'Cria um novo usuário' })
-  @ApiBody({ type: CreateUserDto })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso.' })
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
+  @ApiBody({ type: CreateUserDto })
+  async createUser(@Body() createUserDto: CreateUserDto) {
+    try {
+      return await this.userService.createUser(createUserDto);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      } else if (error instanceof ConflictException) {
+        throw new ConflictException('Erro ao criar usuário.');
+      }
+      throw new BadRequestException('Erro inesperado ao criar usuário.');
+    }
   }
 
   @Get()
@@ -95,10 +106,13 @@ export class UserController {
   @Patch(':id/password')
   @ApiOperation({ summary: 'Atualiza a senha do usuário' })
   @ApiParam({ name: 'id', description: 'ID do usuário' })
-  @ApiBody({ schema: { example: { password: '12345678Ab!' } } })
+  @ApiBody({ schema: { example: { newPassword: '12345678Ab!' } } })
   @ApiResponse({ status: 200, description: 'Senha atualizada com sucesso.' })
-  updatePassword(@Param('id') id: string, @Body('password') password: string) {
-    return this.userService.updatePassword(id, password);
+  async updatePassword(
+    @Param('id') id: string,
+    @Body() { newPassword }: UpdatePasswordDto,
+  ) {
+    return this.userService.updatePassword(id, newPassword);
   }
 
   @Patch(':id/enable')

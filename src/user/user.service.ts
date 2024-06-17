@@ -2,11 +2,14 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User, Username } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { validateOrReject } from 'class-validator';
 
 @Injectable()
 export class UserService {
@@ -183,6 +186,25 @@ export class UserService {
   }
 
   async updatePassword(userId: string, newPassword: string): Promise<User> {
+    // Validação da senha
+    const updatePasswordDto = new UpdatePasswordDto();
+    updatePasswordDto.newPassword = newPassword;
+
+    try {
+      await validateOrReject(updatePasswordDto, {
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        forbidUnknownValues: true,
+      });
+    } catch (errors) {
+      const errorMessages = errors
+        .map((error) => Object.values(error.constraints).join(', '))
+        .join(', ');
+      throw new BadRequestException(
+        `Erro de validação da senha: ${errorMessages}`,
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     return this.prisma.user.update({
       where: { id: userId },
