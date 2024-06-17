@@ -3,14 +3,24 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.use(cookieParser());
+
   app.enableCors({
     origin: '*',
     credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
+
+  app.useGlobalPipes(new ValidationPipe());
+
+  app.setGlobalPrefix('authentication');
 
   const config = new DocumentBuilder()
     .setTitle('NestJS Authentication API')
@@ -19,10 +29,10 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document);
+  SwaggerModule.setup('/authentication/swagger', app, document);
 
   app.use(
-    '/api',
+    '/authentication/api',
     apiReference({
       theme: 'kepler',
       spec: {
@@ -30,6 +40,9 @@ async function bootstrap() {
       },
     }),
   );
-  await app.listen(3000);
+
+  const port = process.env.SERVER_PORT || 3000;
+
+  await app.listen(port);
 }
 bootstrap();

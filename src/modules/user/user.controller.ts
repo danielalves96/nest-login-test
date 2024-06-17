@@ -26,8 +26,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { UploadService } from 'src/upload/upload.service';
+
 import * as multer from 'multer';
+import { UploadService } from '../upload/upload.service';
 
 const storage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
