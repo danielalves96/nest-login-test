@@ -10,7 +10,7 @@ export class CreateUserDto {
 
   @ApiProperty({
     description: 'URL da imagem de perfil',
-    example: 'http://example.com/profile.jpg',
+    example: '',
   })
   profileImageUrl: string;
 

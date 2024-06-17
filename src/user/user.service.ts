@@ -14,11 +14,19 @@ export class UserService {
     await PasswordValidator.validate(createUserDto.password);
     try {
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+      const processedUsername = createUserDto.usernames[0].username.replace(
+        /\s+/g,
+        '+',
+      );
+      const defaultProfileImageUrl = `https://avatar.iran.liara.run/username?username=${processedUsername}`;
+
       const user = await this.prisma.user.create({
         data: {
           password: hashedPassword,
           enabled: createUserDto.enabled,
-          profileImageUrl: createUserDto.profileImageUrl,
+          profileImageUrl:
+            createUserDto.profileImageUrl || defaultProfileImageUrl,
           personId: createUserDto.personId,
           banned: false,
           blocked: false,
