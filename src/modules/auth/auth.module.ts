@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UserModule } from '../user/user.module';
@@ -8,6 +8,7 @@ import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from 'src/common/prisma/prisma.module';
+import { BlacklistMiddleware } from './blacklist.middleware'; // Importando o middleware de blacklist
 
 @Module({
   imports: [
@@ -26,4 +27,15 @@ import { PrismaModule } from 'src/common/prisma/prisma.module';
   providers: [AuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
 })
-export class AuthModule {}
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(BlacklistMiddleware)
+      .exclude(
+        { path: 'auth/login', method: RequestMethod.POST }, // Excluir a rota de login
+      )
+      .forRoutes(
+        { path: '*', method: RequestMethod.ALL }, // Aplicar o middleware em todas as outras rotas
+      );
+  }
+}
