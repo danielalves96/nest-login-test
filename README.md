@@ -1,73 +1,301 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Authentication API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+O authentication-api é um projeto desenvolvido com NestJS que oferece funcionalidades de autenticação de usuário, além de operações CRUD (Create, Read, Update, Delete) relacionadas aos usuários.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Autenticação
 
-## Description
+#### Autentica o usuário e retorna um token JWT
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
-
-```bash
-$ yarn install
+```http
+ POST /auth/login
 ```
 
-## Running the app
+| Parâmetro | Tipo   | Descrição                                    |
+| --------- | ------ | -------------------------------------------- |
+| login     | string | **Obrigatório**. Nome de usuário para login. |
+| password  | string | **Obrigatório**. Senha do usuário.           |
 
-```bash
-# development
-$ yarn run start
+**Respostas**:
 
-# watch mode
-$ yarn run start:dev
+- 201: Login bem-sucedido.
+- 401: Credenciais inválidas.
 
-# production mode
-$ yarn run start:prod
+---
+
+#### Realiza logout do usuário
+
+```http
+POST /auth/logout
 ```
 
-## Test
+| Parâmetro     | Tipo   | Descrição                                |
+| ------------- | ------ | ---------------------------------------- |
+| Authorization | string | Obrigatório. Bearer token JWT no header. |
 
-```bash
-# unit tests
-$ yarn run test
+**Respostas**:
 
-# e2e tests
-$ yarn run test:e2e
+- 200: Logout bem-sucedido.
+- 400: No token provided.
 
-# test coverage
-$ yarn run test:cov
+## API de Usuário
+
+#### Obtém todos os usuários
+
+```http
+GET /users
 ```
 
-## Support
+| Parâmetro     | Tipo   | Descrição                                |
+| ------------- | ------ | ---------------------------------------- |
+| Authorization | string | Obrigatório. Bearer token JWT no header. |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+**Respostas**:
 
-## Stay in touch
+- 200: Lista de todos os usuários.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+#### Obtém os dados do usuário logado
 
-Nest is [MIT licensed](LICENSE).
+```http
+GET /users/me
+```
+
+| Parâmetro     | Tipo   | Descrição                                |
+| ------------- | ------ | ---------------------------------------- |
+| Authorization | string | Obrigatório. Bearer token JWT no header. |
+
+**Respostas**:
+
+- 200: Dados do usuário logado.
+
+---
+
+#### Obtém o total de usuários
+
+```http
+GET /users/count
+```
+
+**Respostas**:
+
+- 200: Total de usuários.
+
+---
+
+#### Obtém detalhes de um usuário pelo ID
+
+```http
+GET /users/${id}
+```
+
+| Parâmetro | Tipo   | Descrição                     |
+| --------- | ------ | ----------------------------- |
+| id        | string | Obrigatório. O ID do usuário. |
+
+**Respostas**:
+
+- 200: Detalhes do usuário obtidos com sucesso.
+- 404: Usuário não encontrado.
+
+---
+
+#### Cria um novo usuário
+
+```http
+POST /users
+```
+
+| Parâmetro | Tipo   | Descrição                      |
+| --------- | ------ | ------------------------------ |
+| username  | string | Obrigatório. Nome de usuário.  |
+| password  | string | Obrigatório. Senha do usuário. |
+| email     | string | Obrigatório. Email do usuário. |
+
+**Respostas**:
+
+- 201: Usuário criado com sucesso.
+
+---
+
+#### Atualiza a senha do usuário
+
+```http
+PATCH /users/${id}/password
+```
+
+| Parâmetro   | Tipo   | Descrição                           |
+| ----------- | ------ | ----------------------------------- |
+| id          | string | Obrigatório. O ID do usuário.       |
+| newPassword | string | Obrigatório. Nova senha do usuário. |
+
+**Respostas**:
+
+- 200: Senha atualizada com sucesso.
+
+---
+
+#### Atualiza a imagem de perfil do usuário
+
+```http
+PATCH /users/${id}/profile-image**
+```
+
+| Parâmetro | Tipo   | Descrição                       |
+| --------- | ------ | ------------------------------- |
+| id        | string | Obrigatório. O ID do usuário.   |
+| file      | file   | Obrigatório. Arquivo de imagem. |
+
+**Respostas**:
+
+- 200: Imagem de perfil atualizada com sucesso.
+
+---
+
+#### Deleta um usuário pelo ID
+
+```http
+DELETE /users/\${id}
+```
+
+| Parâmetro | Tipo   | Descrição                     |
+| --------- | ------ | ----------------------------- |
+| id        | string | Obrigatório. O ID do usuário. |
+
+**Respostas**:
+
+- 200: Usuário deletado com sucesso.
+
+---
+
+#### Cria um nome de usuário
+
+```http
+POST /users/username/${userId}/\${username}/\${organizationId}
+```
+
+| Parâmetro      | Tipo   | Descrição                                             |
+| -------------- | ------ | ----------------------------------------------------- |
+| userId         | string | Obrigatório. O ID do usuário.                         |
+| username       | string | Obrigatório. Nome de usuário.                         |
+| organizationId | string | Obrigatório. O ID da organização.                     |
+| password       | string | Obrigatório. Senha do usuário no corpo da requisição. |
+
+**Respostas**:
+
+- 201: Nome de usuário criado com sucesso.
+- 409: Nome de usuário já existe na organização.
+
+---
+
+#### Ativa um usuário
+
+```http
+PATCH /users/${id}/enable
+```
+
+| Parâmetro | Tipo   | Descrição                     |
+| --------- | ------ | ----------------------------- |
+| id        | string | Obrigatório. O ID do usuário. |
+
+**Respostas**:
+
+- 200: Usuário ativado com sucesso.
+
+---
+
+#### Desativa um usuário
+
+```http
+PATCH /users/${id}/disable
+```
+
+| Parâmetro | Tipo   | Descrição                     |
+| --------- | ------ | ----------------------------- |
+| id        | string | Obrigatório. O ID do usuário. |
+
+**Respostas**:
+
+- 200: Usuário desativado com sucesso.
+
+---
+
+#### Bloqueia um usuário
+
+```http
+PATCH /users/${id}/block
+```
+
+| Parâmetro | Tipo   | Descrição                     |
+| --------- | ------ | ----------------------------- |
+| id        | string | Obrigatório. O ID do usuário. |
+
+**Respostas**:
+
+- 200: Usuário bloqueado com sucesso.
+
+---
+
+#### Desbloqueia um usuário
+
+```http
+PATCH /users/${id}/unblock
+```
+
+| Parâmetro | Tipo   | Descrição                     |
+| --------- | ------ | ----------------------------- |
+| id        | string | Obrigatório. O ID do usuário. |
+
+**Respostas**:
+
+- 200: Usuário desbloqueado com sucesso.
+
+---
+
+#### Bane um usuário
+
+```http
+PATCH /users/${id}/ban
+```
+
+| Parâmetro | Tipo   | Descrição                     |
+| --------- | ------ | ----------------------------- |
+| id        | string | Obrigatório. O ID do usuário. |
+
+**Respostas**:
+
+- 200: Usuário banido com sucesso.
+
+---
+
+#### Desbane um usuário
+
+```http
+PATCH /users/${id}/unban
+```
+
+| Parâmetro | Tipo   | Descrição                     |
+| --------- | ------ | ----------------------------- |
+| id        | string | Obrigatório. O ID do usuário. |
+
+**Respostas**:
+
+- 200: Usuário desbanido com sucesso.
+
+---
+
+#### Deleta um nome de usuário
+
+```http
+DELETE /users/username/\${id}
+```
+
+| Parâmetro | Tipo   | Descrição                             |
+| --------- | ------ | ------------------------------------- |
+| id        | string | Obrigatório. O ID do nome de usuário. |
+
+**Respostas**:
+
+- 200: Nome de usuário deletado com sucesso.
+
+---
