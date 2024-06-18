@@ -8,7 +8,7 @@ import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from 'src/common/prisma/prisma.module';
-import { BlacklistMiddleware } from './blacklist.middleware'; // Importando o middleware de blacklist
+import { BlacklistMiddleware } from './blacklist.middleware';
 
 @Module({
   imports: [

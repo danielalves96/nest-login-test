@@ -37,8 +37,8 @@ export class AuthController {
     return loginResponse;
   }
 
-  @UseGuards(JwtAuthGuard) // Protege a rota de logout
-  @ApiBearerAuth() // Adiciona o cabeçalho de autorização no Swagger
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Realiza logout do usuário' })
   @ApiResponse({ status: 200, description: 'Logout bem-sucedido.' })
   @Post('logout')

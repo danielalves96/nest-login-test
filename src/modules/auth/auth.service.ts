@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  private blacklistedTokens: Set<string> = new Set(); // Blacklist de tokens
+  private blacklistedTokens: Set<string> = new Set();
 
   constructor(
     private userService: UserService,
@@ -24,7 +24,6 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    // Encontre o username correto
     const username = user.usernames.find((u) => u.username === login);
     if (!username) {
       throw new UnauthorizedException('Username não encontrado');
@@ -35,7 +34,7 @@ export class AuthService {
 
   async login(userWithUsername: any) {
     const { user, username } = userWithUsername;
-    const organizationId = username.organizationId; // ID da organização do username utilizado para logar
+    const organizationId = username.organizationId;
     const payload = {
       username: username.username,
       sub: user.id,
@@ -43,7 +42,6 @@ export class AuthService {
     };
     const token = this.jwtService.sign(payload);
 
-    // Atualizar loggedOrganizationId ao fazer login
     await this.userService.updateLoggedOrganizationId(user.id, organizationId);
 
     return {
@@ -54,7 +52,6 @@ export class AuthService {
   async logout(token: string) {
     const decodedToken = this.jwtService.decode(token) as { sub: string };
 
-    // Atualizar loggedOrganizationId para null ao fazer logout
     await this.userService.updateLoggedOrganizationId(decodedToken.sub, null);
 
     this.blacklistedTokens.add(token);

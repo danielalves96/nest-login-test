@@ -1,5 +1,3 @@
-// src/utils/error-handler.ts
-
 import {
   BadRequestException,
   ConflictException,
@@ -10,7 +8,7 @@ import { ExceptionDictionary } from './exception-dictionary';
 
 export class ErrorHandler {
   static handle(error: any, message?: string): void {
-    // Logando o erro no console
+    //! Logando o erro no console
     console.error('Error: ', error);
 
     if (error instanceof BadRequestException) {

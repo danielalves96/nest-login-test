@@ -32,7 +32,7 @@ async function bootstrap() {
   SwaggerModule.setup('/authentication/swagger', app, document);
 
   app.use(
-    '/authentication/api',
+    '/authentication/docs',
     apiReference({
       theme: 'kepler',
       hideModels: true,
