@@ -33,7 +33,8 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Credenciais inválidas.' })
   @Post('login')
   async login(@Request() req) {
-    return this.authService.login(req.user);
+    const loginResponse = await this.authService.login(req.user);
+    return loginResponse;
   }
 
   @UseGuards(JwtAuthGuard) // Protege a rota de logout

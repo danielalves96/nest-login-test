@@ -70,7 +70,11 @@ export class UserController {
     type: CreateUserDto,
   })
   async getProfile(@Request() req) {
-    return this.userService.findOneById(req.user.userId);
+    const user = await this.userService.findOneById(req.user.userId);
+    return {
+      ...user,
+      loggedOrganizationId: req.user.loggedOrganizationId,
+    };
   }
 
   @Get('count')

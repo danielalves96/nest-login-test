@@ -177,7 +177,9 @@ export class UserService {
     }
   }
 
-  async findUserByUsernameOrEmailOrId(login: string): Promise<User | null> {
+  async findUserByUsernameOrEmailOrId(
+    login: string,
+  ): Promise<(User & { usernames: Username[] }) | null> {
     try {
       const user = await this.prisma.user.findFirst({
         where: {
@@ -266,6 +268,22 @@ export class UserService {
       return this.excludePassword(user);
     } catch (error) {
       ErrorHandler.handle(error, 'Erro ao atualizar a imagem de perfil.');
+    }
+  }
+
+  async updateLoggedOrganizationId(
+    userId: string,
+    organizationId: string | null,
+  ): Promise<any> {
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: { loggedOrganizationId: organizationId },
+        include: { usernames: true },
+      });
+      return this.excludePassword(user);
+    } catch (error) {
+      ErrorHandler.handle(error, 'Erro ao atualizar loggedOrganizationId.');
     }
   }
 }

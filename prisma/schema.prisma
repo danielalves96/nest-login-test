@@ -8,17 +8,18 @@ datasource db {
 }
 
 model User {
-  id              String     @id @default(uuid())
-  password        String
-  enabled         Boolean
-  profileImageUrl String?
-  lastSignInAt    DateTime?
-  banned          Boolean    @default(false)
-  blocked         Boolean    @default(false)
-  personId        String
-  updatedAt       DateTime   @updatedAt
-  createdAt       DateTime   @default(now())
-  usernames       Username[]
+  id                   String     @id @default(uuid())
+  password             String
+  enabled              Boolean
+  profileImageUrl      String?
+  lastSignInAt         DateTime?
+  banned               Boolean    @default(false)
+  blocked              Boolean    @default(false)
+  personId             String
+  updatedAt            DateTime   @updatedAt
+  createdAt            DateTime   @default(now())
+  usernames            Username[]
+  loggedOrganizationId String?
 }
 
 model Username {

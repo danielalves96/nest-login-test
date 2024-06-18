@@ -31,11 +31,7 @@ export class AuthModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(BlacklistMiddleware)
-      .exclude(
-        { path: 'auth/login', method: RequestMethod.POST }, // Excluir a rota de login
-      )
-      .forRoutes(
-        { path: '*', method: RequestMethod.ALL }, // Aplicar o middleware em todas as outras rotas
-      );
+      .exclude({ path: 'auth/login', method: RequestMethod.POST })
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
